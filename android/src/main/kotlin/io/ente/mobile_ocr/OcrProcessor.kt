@@ -83,6 +83,14 @@ class OcrProcessor(
     private val ortEnv = OrtEnvironment.getEnvironment()
     private val sessionOptions = OrtSession.SessionOptions().apply {
         setOptimizationLevel(OrtSession.SessionOptions.OptLevel.BASIC_OPT)
+        // Was CPU-only. NNAPI is a Java-level ORT EP already bundled in the
+        // onnxruntime-android AAR -- no NDK/native rebuild needed. Falls
+        // back to CPU per-op if a device's NNAPI driver can't run something.
+        try {
+            addNnapi()
+        } catch (e: OrtException) {
+            Log.w(DEBUG_TAG, "NNAPI EP unavailable, falling back to CPU", e)
+        }
     }
 
     private lateinit var detectionSession: OrtSession
